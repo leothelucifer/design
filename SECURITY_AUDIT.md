@@ -60,7 +60,7 @@ Three problems compound:
       !venv/
 ```
 
-**Current state:** No secret is committed today, and `load_dotenv()` implies a local `.env` is used at runtime. The risk is prospective but realistic: with no `.gitignore`, a developer can trivially `git add .` a `.env`; the build then packages the working tree into `release.zip` and uploads it as a workflow artifact readable by anyone with repo/Actions access. Secrets in this app (Azure OpenAI key, Azure AI Search key, Mongo/Cosmos connection string, app-registration client id) grant control of real cloud resources.
+**Current state:** No secret is committed today, and `load_dotenv()` implies a local `.env` is used at runtime. The risk is prospective but realistic: with no `.gitignore`, a developer can trivially `git add .` a `.env`, at which point it lives in the repository and its history, readable by anyone with repo access. (Correction after verification: the CI command `zip release.zip ./*` uses a shell glob that **excludes dotfiles**, so it would *not* bundle a `.env` from the working directory — the dominant exposure path is committing the secret to git, not the artifact. The artifact does still package the full non-dotfile source.) Secrets in this app (Azure OpenAI key, Azure AI Search key, Mongo/Cosmos connection string, app-registration client id) grant control of real cloud resources. See `verification/VERIFICATION.md` for the `git check-ignore` evidence.
 
 **Remediation:**
 - Add a `.gitignore` that excludes `.env`, `*.env`, `.env.*`, `venv/`, `__pycache__/`, `.streamlit/secrets.toml`.
@@ -181,3 +181,5 @@ Surfacing raw MSAL error/correlation details to end users and printing callback 
 - [ ] Run `pip-audit`/Dependabot and patch; re-encode `requirements.txt` as UTF-8.
 
 *Review method: static source review of the repository at HEAD. History scan was limited to a shallow clone; maintainers should run a full-history secret scan (`gitleaks`/`trufflehog`) on an unshallowed clone as a final gate.*
+
+*Reproducible evidence for these findings — logic reproductions, a `pip-audit` run (115 advisories across 14 packages), and config checks — is in `verification/VERIFICATION.md`.*
