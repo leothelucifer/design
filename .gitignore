@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.env
+*.env
+.env.*
+venv/
+.pytest_cache/
